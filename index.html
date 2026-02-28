@@ -1,55 +1,272 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Página Básica</title>
+import React, { useState, useRef, useEffect } from 'react';
+import { Play, Pause, FastForward, Rewind, MoreHorizontal, Star, Volume1, Volume2, MessageSquareQuote, ListMusic, MonitorSpeaker } from 'lucide-react';
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
+export default function App() {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(220); // 3:40 como valor inicial
+  const [volume, setVolume] = useState(0.8);
+  
+  const audioRef = useRef(null);
+  const coverVideoRef = useRef(null);
+  const bgVideoRef = useRef(null);
 
-        header {
-            background-color: black;
-            color: white;
-            padding: 20px;
-        }
+  // Sincronizar videos con el estado del audio
+  useEffect(() => {
+    if (isPlaying) {
+      audioRef.current?.play();
+      coverVideoRef.current?.play();
+      bgVideoRef.current?.play();
+    } else {
+      audioRef.current?.pause();
+      coverVideoRef.current?.pause();
+      bgVideoRef.current?.pause();
+    }
+  }, [isPlaying]);
 
-        main {
-            padding: 20px;
-        }
+  const togglePlay = () => {
+    setIsPlaying(!isPlaying);
+  };
 
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-    </style>
-</head>
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+    }
+  };
 
-<body>
+  const handleLoadedMetadata = () => {
+    if (audioRef.current) {
+      setDuration(audioRef.current.duration);
+    }
+  };
 
-<header>
-    <h1>Mi Página Web</h1>
-</header>
+  const skipForward = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = Math.min(audioRef.current.duration, audioRef.current.currentTime + 15);
+    }
+  };
 
-<main>
-    <h2>Bienvenido</h2>
-    <p>Este es un sitio HTML básico.</p>
+  const skipBackward = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 15);
+    }
+  };
 
-    <button onclick="saludar()">Haz clic</button>
-</main>
+  const handleSeek = (e) => {
+    const time = Number(e.target.value);
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+    }
+    setCurrentTime(time);
+  };
 
-<script>
-function saludar() {
-    alert("Hola mundo");
+  const handleVolumeChange = (e) => {
+    const vol = Number(e.target.value);
+    if (audioRef.current) {
+      audioRef.current.volume = vol;
+    }
+    setVolume(vol);
+  };
+
+  const formatTime = (timeInSeconds) => {
+    if (isNaN(timeInSeconds)) return "0:00";
+    const minutes = Math.floor(timeInSeconds / 60);
+    const seconds = Math.floor(timeInSeconds % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  // Calcular el progreso para los sliders (0 a 100)
+  const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const volumePercentage = volume * 100;
+
+  return (
+    <div className="min-h-screen bg-neutral-950 flex items-center justify-center p-4 sm:p-8 font-sans">
+      {/* Contenedor tipo teléfono */}
+      <div className="relative w-full max-w-[420px] h-[850px] max-h-[95vh] bg-black rounded-[3rem] overflow-hidden shadow-2xl border-[6px] border-neutral-800 flex flex-col">
+        
+        {/* Fondo Dinámico Desenfocado */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <video
+            ref={bgVideoRef}
+            src="https://res.cloudinary.com/dhx58lnzb/video/upload/v1772248124/Dancing_Golem_aauqpk.mp4"
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover scale-125 opacity-70"
+            style={{ filter: 'blur(80px)' }}
+          />
+          {/* Capa de oscurecimiento */}
+          <div className="absolute inset-0 bg-black/30 bg-gradient-to-b from-transparent to-black/60"></div>
+        </div>
+
+        {/* Barra superior de estado simulada (opcional para dar la ilusión de iOS) */}
+        <div className="relative z-10 w-full pt-4 pb-2 px-6 flex justify-between items-center text-white/90 text-xs font-semibold">
+          <span>9:41</span>
+          <div className="flex gap-2 items-center">
+            <div className="w-4 h-3 bg-white/90 rounded-sm"></div>
+            <div className="w-5 h-3 bg-white/90 rounded-sm"></div>
+          </div>
+        </div>
+
+        {/* Indicador superior (Dynamic Island / Muesca) */}
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-32 h-7 bg-black rounded-full z-20"></div>
+
+        {/* Contenido Principal */}
+        <div className="relative z-10 flex-1 flex flex-col px-6 pt-6 pb-8">
+          
+          {/* Portada Animada */}
+          <div className={`relative w-full aspect-square rounded-[2rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-transform duration-500 ${isPlaying ? 'scale-100' : 'scale-90'}`}>
+            <video
+              ref={coverVideoRef}
+              src="https://res.cloudinary.com/dhx58lnzb/video/upload/v1772248124/Dancing_Golem_aauqpk.mp4"
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          <div className="flex-1"></div>
+
+          {/* Información de la canción */}
+          <div className="flex justify-between items-end mb-8">
+            <div className="flex flex-col">
+              {/* Etiqueta opcional "Escuchando" */}
+              <div className="flex items-center gap-2 mb-2 bg-white/10 w-max px-3 py-1 rounded-full backdrop-blur-md">
+                <div className="w-4 h-4 bg-gradient-to-tr from-purple-500 to-orange-400 rounded-full"></div>
+                <span className="text-white/80 text-xs font-medium">Escuchando ahora</span>
+              </div>
+              <h1 className="text-white text-2xl font-bold tracking-wide">Assumptions</h1>
+              <h2 className="text-white/60 text-lg font-medium tracking-wide">Sam Gellaitry</h2>
+            </div>
+            
+            <div className="flex gap-4">
+              <button className="text-white/80 hover:text-white transition-colors bg-white/5 p-2 rounded-full backdrop-blur-sm">
+                <Star size={20} fill="currentColor" />
+              </button>
+              <button className="text-white/80 hover:text-white transition-colors bg-white/5 p-2 rounded-full backdrop-blur-sm">
+                <MoreHorizontal size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Barra de Progreso */}
+          <div className="mb-8 group">
+            <div className="relative h-1.5 flex items-center">
+              <input
+                type="range"
+                min={0}
+                max={duration || 100}
+                value={currentTime}
+                onChange={handleSeek}
+                className="absolute w-full h-full opacity-0 cursor-pointer z-10"
+              />
+              <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden flex items-center">
+                <div 
+                  className="h-full bg-white/80 rounded-full" 
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
+              {/* Thumb */}
+              <div 
+                className="absolute w-2 h-2 bg-white rounded-full pointer-events-none transition-transform group-hover:scale-150"
+                style={{ left: `calc(${progressPercentage}% - 4px)` }}
+              ></div>
+            </div>
+            <div className="flex justify-between text-[11px] text-white/50 font-medium mt-2">
+              <span>{formatTime(currentTime)}</span>
+              <span>-{formatTime(duration - currentTime)}</span>
+            </div>
+          </div>
+
+          {/* Controles Principales */}
+          <div className="flex justify-center items-center gap-12 mb-10">
+            <button 
+              onClick={skipBackward}
+              className="text-white hover:text-white/70 transition-colors"
+              aria-label="Retrasar 15 segundos"
+            >
+              <Rewind size={36} fill="currentColor" />
+            </button>
+            
+            <button 
+              onClick={togglePlay}
+              className="text-white transition-transform active:scale-90"
+            >
+              {isPlaying ? (
+                <Pause size={56} fill="currentColor" />
+              ) : (
+                <Play size={56} fill="currentColor" className="ml-2" />
+              )}
+            </button>
+            
+            <button 
+              onClick={skipForward}
+              className="text-white hover:text-white/70 transition-colors"
+              aria-label="Adelantar 15 segundos"
+            >
+              <FastForward size={36} fill="currentColor" />
+            </button>
+          </div>
+
+          {/* Control de Volumen */}
+          <div className="flex items-center gap-4 mb-8">
+            <Volume1 size={14} className="text-white/50" />
+            <div className="relative flex-1 h-1.5 flex items-center group">
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={volume}
+                onChange={handleVolumeChange}
+                className="absolute w-full h-full opacity-0 cursor-pointer z-10"
+              />
+              <div className="w-full h-1.5 bg-white/20 rounded-full flex items-center">
+                <div 
+                  className="h-full bg-white/80 rounded-full" 
+                  style={{ width: `${volumePercentage}%` }}
+                ></div>
+              </div>
+               <div 
+                className="absolute w-3 h-3 bg-white rounded-full shadow pointer-events-none scale-0 group-hover:scale-100 transition-transform"
+                style={{ left: `calc(${volumePercentage}% - 6px)` }}
+              ></div>
+            </div>
+            <Volume2 size={16} className="text-white/50" />
+          </div>
+
+          {/* Barra Inferior (Acciones) */}
+          <div className="flex justify-center gap-10">
+            {/* Letras deshabilitadas como solicitaste */}
+            <button className="text-white/20 cursor-not-allowed">
+              <MessageSquareQuote size={22} />
+            </button>
+            
+            <button className="text-white/60 hover:text-white transition-colors">
+              <MonitorSpeaker size={22} />
+            </button>
+            
+            <button className="text-white/60 hover:text-white transition-colors">
+              <ListMusic size={22} />
+            </button>
+          </div>
+
+        </div>
+
+        {/* Indicador inferior de iOS (Home Indicator) */}
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/50 rounded-full z-20"></div>
+
+      </div>
+
+      {/* Elemento de Audio Oculto */}
+      <audio
+        ref={audioRef}
+        src="https://res.cloudinary.com/dhx58lnzb/video/upload/v1771900933/Assumptions_mhq8co.mp3"
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        onEnded={() => setIsPlaying(false)}
+      />
+    </div>
+  );
 }
-</script>
-
-</body>
-</html>
