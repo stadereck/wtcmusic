@@ -1,115 +1,266 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Player</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
-        }
-        .player-container {
-            border-radius: 25px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            background: white;
-            width: 400px;
-            position: relative;
-        }
-        video {
-            width: 100%;
-            height: auto;
-            position: absolute;
-            top: 0;
-            left: 0;
-            object-fit: cover;
-            z-index: 0;
-        }
-        .controls {
-            position: relative;
-            z-index: 1;
-            padding: 20px;
-        }
-        .progress {
-            width: 100%;
-            height: 5px;
-            background-color: #ddd;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
-        .progress-bar {
-            height: 100%;
-            background-color: #007bff;
-            width: 0;
-        }
-        .play-pause,
-        .rewind,
-        .forward {
-            cursor: pointer;
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            margin: 0 5px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WTC Music</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 <body>
-    <div class="player-container">
-        <video id="videoCover" src="https://res.cloudinary.com/dhx58lnzb/video/upload/v1772248124/Dancing_Golem_aauqpk.mp4" autoplay muted loop></video>
-        <div class="controls">
-            <h2>Sam Gellaitry</h2>
-            <p>Duration: 3:40</p>
-            <audio id="audio" src="https://res.cloudinary.com/dhx58lnzb/video/upload/v1771900933/Assumptions_mhq8co.mp3"></audio>
-            <button class="rewind">⏪ Rewind</button>
-            <button class="play-pause">▶️ Play</button>
-            <button class="forward">⏩ Forward</button>
-            <div class="progress">
-                <div class="progress-bar" id="progressBar"></div>
-            </div>
-            <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="1">
+
+  <div class="app-wrapper">
+
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="sidebar">
+
+      <div class="sidebar-search" id="searchBtn">
+        <i class="fa fa-magnifying-glass"></i>
+        <span>Buscar</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a class="nav-item active" data-section="inicio">
+          <i class="fa fa-house"></i><span>Inicio</span>
+        </a>
+        <a class="nav-item" data-section="radio">
+          <i class="fa fa-tower-broadcast"></i><span>Radio</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-label">Biblioteca</div>
+      <nav class="sidebar-nav">
+        <div class="nav-group">
+          <div class="nav-group-toggle" id="pinnedToggle">
+            <i class="fa fa-chevron-down chev"></i><span>Fijados</span>
+          </div>
+          <div class="nav-group-items" id="pinnedItems">
+            <a class="nav-item playlist-item" data-section="inicio">
+              <img src="https://res.cloudinary.com/df6ozlyhj/image/upload/v1782504582/Happier_Than_Ever_Cover_odsqsc.jpg" class="pl-thumb"/>
+              <span>Happier Than Ever</span>
+            </a>
+            <a class="nav-item playlist-item" data-section="inicio">
+              <img src="https://picsum.photos/seed/malpha/32/32" class="pl-thumb"/>
+              <span>Mujeres Alpha...</span>
+            </a>
+            <a class="nav-item playlist-item" data-section="inicio">
+              <img src="https://picsum.photos/seed/lux/32/32" class="pl-thumb"/>
+              <span>LUX (Complete...)</span>
+            </a>
+          </div>
         </div>
+        <a class="nav-item" data-section="recientes"><i class="fa fa-clock-rotate-left"></i><span>Añadido recientem...</span></a>
+        <a class="nav-item" data-section="artistas"><i class="fa fa-user"></i><span>Artistas</span></a>
+        <a class="nav-item" data-section="albumes"><i class="fa fa-record-vinyl"></i><span>Álbumes</span></a>
+        <a class="nav-item" data-section="canciones"><i class="fa fa-music"></i><span>Canciones</span></a>
+        <a class="nav-item" data-section="videoclips"><i class="fa fa-film"></i><span>Videoclips</span></a>
+      </nav>
+
+      <div class="sidebar-label">Tienda</div>
+      <nav class="sidebar-nav">
+        <a class="nav-item" data-section="store"><i class="fa fa-bag-shopping"></i><span>iTunes Store</span></a>
+      </nav>
+
+      <div class="sidebar-label">Playlists</div>
+      <nav class="sidebar-nav">
+        <a class="nav-item" data-section="canciones"><i class="fa fa-table-cells"></i><span>Todas las playlists</span></a>
+        <a class="nav-item" data-section="canciones"><i class="fa fa-circle-plus"></i><span>Canciones favoritas</span></a>
+        <a class="nav-item playlist-item" data-section="canciones">
+          <img src="https://picsum.photos/seed/be1/32/32" class="pl-thumb"/><span>Billie Eilish Essenti...</span>
+        </a>
+        <a class="nav-item playlist-item" data-section="canciones">
+          <img src="https://picsum.photos/seed/be2/32/32" class="pl-thumb"/><span>Billie Eilish N·1</span>
+        </a>
+        <a class="nav-item playlist-item" data-section="canciones">
+          <img src="https://picsum.photos/seed/be3/32/32" class="pl-thumb"/><span>Billie Eilish: playlist...</span>
+        </a>
+        <a class="nav-item playlist-item" data-section="canciones">
+          <img src="https://picsum.photos/seed/brat/32/32" class="pl-thumb"/><span>BRAT...</span>
+        </a>
+        <a class="nav-item playlist-item" data-section="canciones">
+          <img src="https://picsum.photos/seed/loop/32/32" class="pl-thumb"/><span>En loop</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-row">
+          <div class="user-av">DX</div>
+          <span class="user-name">Dereck xcx</span>
+        </div>
+        <p class="sync-text">Cargando biblioteca en la nube...</p>
+      </div>
+
+    </aside>
+
+    <!-- ═══ MAIN ═══ -->
+    <main class="main" id="main">
+
+      <!-- INICIO -->
+      <section class="sec active" id="sec-inicio">
+        <h1 class="page-title">Inicio</h1>
+
+        <!-- Promo 1 -->
+        <div class="promo red" id="promoPlay">
+          <p class="promo-top">Obtén 3 meses por $129.00</p>
+          <div class="promo-logo"><i class="fa-brands fa-apple"></i><span>Music</span></div>
+          <div class="promo-mid">Escucha WTC Music sin límites</div>
+          <div class="promo-bot">
+            <p class="promo-cta">Probar WTC Music</p>
+            <p class="promo-sub">3 meses por $129.00, luego $129.00/mes</p>
+          </div>
+        </div>
+
+        <!-- Promo 2 -->
+        <div class="promo pink">
+          <p class="promo-top">Obtén 3 meses por el precio de 1</p>
+          <div class="promo-people">
+            <div class="pp h60"></div><div class="pp h80"></div>
+            <div class="pp h100"></div><div class="pp h80"></div><div class="pp h60"></div>
+          </div>
+        </div>
+
+        <h2 class="row-title">Escuchado recientemente</h2>
+        <div class="cards-row" id="rowRecent"></div>
+
+        <h2 class="row-title">Recomendado para ti</h2>
+        <div class="cards-row" id="rowRec"></div>
+
+        <h2 class="row-title">Top Global</h2>
+        <div class="song-list" id="listTop"></div>
+      </section>
+
+      <!-- RADIO -->
+      <section class="sec" id="sec-radio">
+        <h1 class="page-title">Radio</h1>
+        <div class="radio-grid" id="radioGrid"></div>
+      </section>
+
+      <!-- ARTISTAS -->
+      <section class="sec" id="sec-artistas">
+        <h1 class="page-title">Artistas</h1>
+        <div class="artist-grid" id="artistGrid"></div>
+      </section>
+
+      <!-- ÁLBUMES -->
+      <section class="sec" id="sec-albumes">
+        <h1 class="page-title">Álbumes</h1>
+        <div class="cards-row wrap" id="albumGrid"></div>
+      </section>
+
+      <!-- CANCIONES -->
+      <section class="sec" id="sec-canciones">
+        <h1 class="page-title">Canciones</h1>
+        <div class="song-list" id="listAll"></div>
+      </section>
+
+      <!-- RECIENTES -->
+      <section class="sec" id="sec-recientes">
+        <h1 class="page-title">Añadido recientemente</h1>
+        <div class="cards-row wrap" id="recentGrid"></div>
+      </section>
+
+      <!-- VIDEOCLIPS -->
+      <section class="sec" id="sec-videoclips">
+        <h1 class="page-title">Videoclips</h1>
+        <div class="video-grid" id="videoGrid"></div>
+      </section>
+
+      <!-- STORE -->
+      <section class="sec" id="sec-store">
+        <h1 class="page-title">iTunes Store</h1>
+        <div class="store-hero">
+          <i class="fa-brands fa-apple"></i>
+          <div>
+            <h2>WTC Music</h2>
+            <p>Millones de canciones. Sin anuncios.</p>
+            <button class="sub-btn">Suscribirse</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ═══ PLAYER BAR (Apple Music pill) ═══ -->
+  <div class="player-bar" id="playerBar">
+    <div class="pb-pill" id="pbPill">
+
+      <!-- Progress line at bottom of pill -->
+      <div class="pb-prog-line"><div class="pb-prog-line-fill" id="progLineFill"></div></div>
+
+      <!-- LEFT: transport -->
+      <div class="pb-left">
+        <button class="cb" id="btnShuffle" title="Aleatorio (S)"><i class="fa fa-shuffle"></i></button>
+        <button class="cb" id="btnPrev"    title="Anterior (Shift+←)"><i class="fa fa-backward"></i></button>
+        <button class="cb play-cb" id="btnPlay" title="Play/Pausa (Espacio)">
+          <i class="fa fa-play" id="playIco"></i>
+        </button>
+        <button class="cb" id="btnNext"   title="Siguiente (Shift+→)"><i class="fa fa-forward"></i></button>
+        <button class="cb" id="btnRepeat" title="Repetir (R)"><i class="fa fa-repeat"></i></button>
+      </div>
+
+      <!-- CENTER: art + info + mini progress -->
+      <div class="pb-center" id="pbCenter">
+        <div class="pb-art" id="pbArt"></div>
+        <div class="pb-info">
+          <div class="pb-title-row">
+            <div class="pb-title" id="pbTitle">Happier Than Ever</div>
+            <span class="pb-explicit" id="pbExplicit" style="display:none">E</span>
+          </div>
+          <div class="pb-meta">
+            <span class="pb-artist" id="pbArtist">Billie Eilish — Happier Than Ever</span>
+          </div>
+          <!-- inline seek bar -->
+          <div class="pb-prog-inline" id="progInline">
+            <div class="pb-prog-inline-fill" id="progInlineFill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: icons -->
+      <div class="pb-right">
+        <button class="cb" id="btnMore"   title="Más opciones"><i class="fa fa-ellipsis"></i></button>
+        <button class="cb" id="btnQueue"  title="Cola"><i class="fa fa-list"></i></button>
+        <div class="vol-row">
+          <i class="fa fa-volume-low vol-ico" id="volIcoL"></i>
+          <div class="vol-wrap" id="volWrap">
+            <div class="vol-bg">
+              <div class="vol-fill" id="volFill"></div>
+              <div class="vol-thumb" id="volThumb"></div>
+            </div>
+          </div>
+          <i class="fa fa-volume-high vol-ico" id="volIcoH"></i>
+        </div>
+      </div>
+
     </div>
 
-    <script>
-        const audio = document.getElementById('audio');
-        const playPauseBtn = document.querySelector('.play-pause');
-        const rewindBtn = document.querySelector('.rewind');
-        const forwardBtn = document.querySelector('.forward');
-        const progressBar = document.getElementById('progressBar');
-        const volumeControl = document.getElementById('volumeControl');
+    <!-- Expanded seek modal (click on center) -->
+    <div class="seek-modal" id="seekModal">
+      <div class="seek-times">
+        <span id="seekCur">0:00</span>
+        <span id="seekDur">0:00</span>
+      </div>
+      <div class="seek-wrap" id="seekWrap">
+        <div class="seek-bg">
+          <div class="seek-fill" id="seekFill"></div>
+          <div class="seek-thumb" id="seekThumb"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        playPauseBtn.addEventListener('click', () => {
-            if (audio.paused) {
-                audio.play();
-                playPauseBtn.textContent = '⏸️ Pause';
-            } else {
-                audio.pause();
-                playPauseBtn.textContent = '▶️ Play';
-            }
-        });
+  <!-- hidden audio -->
+  <audio id="audio" preload="auto"></audio>
 
-        rewindBtn.addEventListener('click', () => {
-            audio.currentTime = Math.max(0, audio.currentTime - 10);
-        });
+  <!-- Context menu -->
+  <div class="ctx" id="ctxMenu"></div>
 
-        forwardBtn.addEventListener('click', () => {
-            audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
-        });
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
 
-        audio.addEventListener('timeupdate', () => {
-            const progressPercent = (audio.currentTime / audio.duration) * 100;
-            progressBar.style.width = `${progressPercent}%`;
-        });
-
-        volumeControl.addEventListener('input', () => {
-            audio.volume = volumeControl.value;
-        });
-    </script>
+  <script src="app.js"></script>
 </body>
 </html>
