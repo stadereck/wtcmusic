@@ -3,427 +3,190 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WTC Music</title>
-    
+    <title>Reproductor web de WTC Music: música para todo el mundo</title>
+    <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/7/75/Spotify_icon.png" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    
-    <style>
-        :root {
-            --bg-base: #000000;
-            --bg-panel: #121212;
-            --bg-hover: #1f1f1f;
-            --bg-active: #282828;
-            --spotify-green: #1ed760;
-            --text-main: #ffffff;
-            --text-sub: #b3b3b3;
-            --font-family: 'Inter', sans-serif;
-            --panel-radius: 8px;
-            --topbar-height: 64px;
-            --player-height: 90px;
-        }
-
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: var(--font-family);
-            background-color: var(--bg-base);
-            color: var(--text-main);
-            height: 100vh;
-            overflow: hidden;
-            display: grid;
-            grid-template-areas:
-                "topbar topbar topbar"
-                "left main right"
-                "player player player";
-            grid-template-columns: 280px 1fr 340px;
-            grid-template-rows: var(--topbar-height) 1fr var(--player-height);
-            gap: 8px;
-            padding: 8px;
-            user-select: none;
-        }
-
-        /* Scrollbars */
-        ::-webkit-scrollbar { width: 12px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 6px; border: 3px solid var(--bg-panel); }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.5); }
-
-        .panel {
-            background-color: var(--bg-panel);
-            border-radius: var(--panel-radius);
-            overflow-y: auto;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        .topbar {
-            grid-area: topbar;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
-        }
-
-        .top-left { display: flex; align-items: center; width: 264px; }
-        .top-left .fa-spotify { font-size: 32px; color: var(--text-main); }
-
-        .top-center { display: flex; align-items: center; gap: 8px; flex: 1; max-width: 500px; justify-content: center; }
-        .btn-home {
-            background: var(--bg-active); color: var(--text-main);
-            border: none; border-radius: 50%; width: 48px; height: 48px;
-            font-size: 20px; cursor: pointer; transition: transform 0.2s;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .btn-home:hover { transform: scale(1.05); }
-        
-        .search-bar {
-            flex: 1; height: 48px; background: #242424;
-            border-radius: 99px; display: flex; align-items: center;
-            padding: 0 16px; gap: 12px; border: 1px solid transparent;
-        }
-        .search-bar:hover { background: #2a2a2a; border-color: rgba(255,255,255,0.2); }
-        .search-bar input {
-            background: transparent; border: none; outline: none;
-            color: var(--text-main); font-size: 15px; font-weight: 500; width: 100%;
-            font-family: var(--font-family);
-        }
-        .search-bar input::placeholder { color: var(--text-sub); }
-        .search-bar .fa-magnifying-glass { color: var(--text-sub); font-size: 18px; }
-        .search-bar .fa-folder { color: var(--text-sub); font-size: 18px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 12px; cursor: pointer; }
-
-        .top-right { display: flex; align-items: center; gap: 16px; justify-content: flex-end; width: 264px; }
-        .btn-install {
-            background: var(--text-main); color: var(--bg-base);
-            border: none; border-radius: 99px; padding: 6px 14px;
-            font-size: 13px; font-weight: 700; cursor: pointer;
-            display: flex; align-items: center; gap: 6px; transition: transform 0.2s;
-        }
-        .btn-install:hover { transform: scale(1.04); }
-        .icon-btn { background: transparent; border: none; color: var(--text-sub); font-size: 16px; cursor: pointer; transition: color 0.2s; }
-        .icon-btn:hover { color: var(--text-main); }
-        .user-avatar {
-            width: 32px; height: 32px; background: #1fdf64; color: #000;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 14px; font-weight: 700; cursor: pointer; border: 4px solid var(--bg-base);
-        }
-
-        .left-sidebar { grid-area: left; display: flex; flex-direction: column; }
-        .lib-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; }
-        .lib-title { display: flex; align-items: center; gap: 12px; color: var(--text-sub); font-weight: 700; font-size: 16px; cursor: pointer; transition: color 0.2s; }
-        .lib-title:hover { color: var(--text-main); }
-        .lib-actions { display: flex; align-items: center; gap: 8px; }
-        .lib-actions .icon-btn { font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .lib-actions .icon-btn:hover { background: var(--bg-hover); }
-
-        .lib-filters { display: flex; gap: 8px; padding: 0 16px 8px; }
-        .chip {
-            background: rgba(255,255,255,0.07); color: var(--text-main);
-            padding: 6px 12px; border-radius: 99px; font-size: 13px; font-weight: 500;
-            cursor: pointer; transition: background 0.2s;
-        }
-        .chip:hover { background: rgba(255,255,255,0.1); }
-        .chip.active { background: var(--text-main); color: var(--bg-base); }
-
-        .lib-search-row { display: flex; justify-content: space-between; padding: 8px 16px; color: var(--text-sub); font-size: 13px; }
-        .lib-list { flex: 1; padding: 0 8px 8px; overflow-y: auto; }
-        .lib-item { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
-        .lib-item:hover { background: var(--bg-hover); }
-        .lib-item.active { background: var(--bg-active); }
-        .lib-img { width: 48px; height: 48px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
-        .lib-img.round { border-radius: 50%; }
-        .lib-icon-bg {
-            width: 48px; height: 48px; border-radius: 4px; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff;
-        }
-        .bg-liked { background: linear-gradient(135deg, #450af5, #c4efd9); }
-        .lib-info { min-width: 0; flex: 1; display: flex; flex-direction: column; justify-content: center; }
-        .lib-name { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main); }
-        .lib-item.active .lib-name { color: var(--spotify-green); }
-        .lib-desc { font-size: 13px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px; margin-top: 2px;}
-        .lib-desc .fa-thumbtack { color: var(--spotify-green); font-size: 12px; transform: rotate(45deg);}
-
-        .main-content {
-            grid-area: main; background: linear-gradient(to bottom, #1f1f1f 0%, var(--bg-panel) 300px);
-            padding: 16px 24px; display: flex; flex-direction: column;
-        }
-        .main-header-chips { display: flex; gap: 8px; margin-bottom: 24px; }
-        
-        .recent-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 32px; }
-        .recent-card {
-            background: rgba(255,255,255,0.08); border-radius: 4px; display: flex; align-items: center;
-            overflow: hidden; cursor: pointer; transition: background 0.3s; position: relative; height: 48px;
-        }
-        .recent-card:hover { background: rgba(255,255,255,0.15); }
-        .recent-card img { width: 48px; height: 48px; object-fit: cover; }
-        .recent-card span { font-size: 14px; font-weight: 700; padding: 0 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .btn-play-green {
-            position: absolute; right: 8px; width: 32px; height: 32px; border-radius: 50%;
-            background: var(--spotify-green); color: #000; border: none;
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; transform: translateY(4px); transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5); cursor: pointer;
-        }
-        .recent-card:hover .btn-play-green { opacity: 1; transform: translateY(0); }
-        .btn-play-green:hover { transform: scale(1.05) translateY(0) !important; background: #1fdf64; }
-
-        .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px; }
-        .section-header h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-        .section-header h2:hover { text-decoration: underline; cursor: pointer; }
-        .section-header .show-all { font-size: 13px; font-weight: 700; color: var(--text-sub); cursor: pointer; }
-        .section-header .show-all:hover { text-decoration: underline; }
-
-        .shelf-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 32px; }
-        .shelf-card {
-            padding: 12px; border-radius: 8px; cursor: pointer; transition: background 0.3s;
-            display: flex; flex-direction: column; position: relative;
-        }
-        .shelf-card:hover { background: #181818; }
-        .shelf-card img { width: 100%; aspect-ratio: 1; border-radius: 6px; object-fit: cover; box-shadow: 0 8px 24px rgba(0,0,0,0.4); margin-bottom: 12px; }
-        .shelf-card .btn-play-green { width: 40px; height: 40px; bottom: 80px; right: 20px; font-size: 18px; }
-        .shelf-card:hover .btn-play-green { opacity: 1; transform: translateY(0); }
-        .shelf-title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
-        .shelf-desc { font-size: 13px; color: var(--text-sub); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4;}
-
-        .right-sidebar { grid-area: right; padding: 16px; display: flex; flex-direction: column; }
-        .rs-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .rs-header h3 { font-size: 15px; font-weight: 700; }
-        
-        .rs-cover-wrapper { position: relative; width: 100%; aspect-ratio: 1; border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
-        .rs-cover-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-        .btn-video-mode {
-            position: absolute; bottom: 12px; left: 12px; background: rgba(0,0,0,0.6);
-            color: white; border: 1px solid rgba(255,255,255,0.3); padding: 6px 12px; border-radius: 99px;
-            font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;
-            backdrop-filter: blur(8px); transition: transform 0.2s, background 0.2s;
-        }
-        .btn-video-mode:hover { transform: scale(1.05); background: rgba(0,0,0,0.8); }
-
-        .rs-info-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-        .rs-text { min-width: 0; }
-        .rs-title { font-size: 22px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
-        .rs-artist { font-size: 15px; color: var(--text-sub); cursor: pointer; }
-        .rs-artist:hover { text-decoration: underline; color: var(--text-main); }
-        .rs-actions { display: flex; gap: 12px; align-items: center; color: var(--text-sub); }
-        .rs-actions i { font-size: 20px; cursor: pointer; transition: color 0.2s; }
-        .rs-actions i:hover { color: var(--text-main); }
-
-        .rs-related { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
-        .rs-related-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .rs-rel-card { border-radius: 8px; overflow: hidden; cursor: pointer; }
-        .rs-rel-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 8px; }
-        .rs-rel-card span { display: block; font-size: 13px; font-weight: 600; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-
-        .player-bar { grid-area: player; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: var(--bg-base); z-index: 900; }
-        
-        .pb-left { display: flex; align-items: center; gap: 14px; width: 30%; min-width: 180px; }
-        .pb-cover { width: 56px; height: 56px; border-radius: 4px; object-fit: cover; }
-        .pb-info { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
-        .pb-title { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
-        .pb-title:hover { text-decoration: underline; }
-        .pb-artist { font-size: 11px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
-        .pb-artist:hover { color: var(--text-main); text-decoration: underline; }
-        .pb-add { color: var(--text-sub); font-size: 16px; cursor: pointer; margin-left: 8px; }
-        .pb-add:hover { color: var(--text-main); }
-
-        .pb-center { display: flex; flex-direction: column; align-items: center; width: 40%; max-width: 722px; gap: 8px; }
-        .pb-controls { display: flex; align-items: center; gap: 16px; }
-        .ctrl-btn { background: transparent; border: none; color: var(--text-sub); font-size: 16px; cursor: pointer; transition: color 0.2s; }
-        .ctrl-btn:hover { color: var(--text-main); }
-        .ctrl-play { background: var(--text-main); color: var(--bg-base); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: transform 0.2s; }
-        .ctrl-play:hover { transform: scale(1.05); }
-
-        .pb-progress { display: flex; align-items: center; gap: 8px; width: 100%; }
-        .prog-time { font-size: 11px; color: var(--text-sub); min-width: 40px; text-align: center; }
-        .prog-bar-container { flex: 1; height: 12px; display: flex; align-items: center; cursor: pointer; position: relative;}
-        .prog-bar-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; }
-        .prog-bar-fill { height: 100%; background: var(--text-main); border-radius: 2px; position: relative; pointer-events: none;}
-        .prog-bar-container:hover .prog-bar-fill { background: var(--spotify-green); }
-        .prog-thumb { position: absolute; right: -5px; top: 50%; transform: translateY(-50%); width: 10px; height: 10px; background: #fff; border-radius: 50%; display: none; box-shadow: 0 2px 4px rgba(0,0,0,0.5);}
-        .prog-bar-container:hover .prog-thumb { display: block; }
-
-        .pb-right { display: flex; align-items: center; justify-content: flex-end; gap: 12px; width: 30%; min-width: 180px; }
-        .vol-container { width: 93px; height: 12px; display: flex; align-items: center; cursor: pointer; position: relative;}
-        .vol-container:hover .prog-bar-fill { background: var(--spotify-green); }
-        .vol-container:hover .prog-thumb { display: block; }
-
-        .video-overlay {
-            grid-column: 1 / span 3;
-            grid-row: 2;
-            background: #000;
-            border-radius: var(--panel-radius);
-            z-index: 1000;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            opacity: 1;
-            transition: opacity 0.4s ease;
-        }
-        .video-overlay.hidden { display: none; opacity: 0; }
-        .video-overlay video { width: 100%; height: 100%; object-fit: contain; }
-        .btn-exit-video {
-            position: absolute; top: 24px; right: 24px;
-            background: rgba(0,0,0,0.6); color: white; border: 1px solid rgba(255,255,255,0.3);
-            padding: 10px 20px; border-radius: 99px; font-weight: 700; font-size: 14px;
-            cursor: pointer; backdrop-filter: blur(12px); transition: transform 0.2s, background 0.2s;
-            display: flex; align-items: center; gap: 8px; z-index: 1001;
-        }
-        .btn-exit-video:hover { transform: scale(1.05); background: rgba(0,0,0,0.8); }
-
-    </style>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
+    <!-- ── TOP BAR ── -->
     <header class="topbar">
         <div class="top-left">
             <i class="fa-brands fa-spotify"></i>
         </div>
+
         <div class="top-center">
-            <button class="btn-home"><i class="fa fa-house"></i></button>
-            <div class="search-bar">
-                <i class="fa fa-magnifying-glass"></i>
-                <input type="text" placeholder="¿Qué quieres reproducir?" />
-                <i class="fa fa-folder"></i>
+            <button class="btn-home" aria-label="Inicio"><i class="fa fa-house"></i></button>
+            <div class="search-bar" id="searchBar">
+                <i class="fa fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="text" id="searchInput" placeholder="¿Qué quieres reproducir?" aria-label="Buscar" autocomplete="off" />
+                <i class="fa fa-xmark" id="searchClear" aria-hidden="true" style="display:none;cursor:pointer;"></i>
+                <i class="fa fa-folder" aria-hidden="true"></i>
+            </div>
+            <div class="search-dropdown" id="searchDropdown" hidden>
+                <div class="sd-nav">
+                    <button class="sd-nav-btn" id="sdNavUp"   aria-label="Arriba"><i class="fa fa-arrow-up"></i></button>
+                    <button class="sd-nav-btn" id="sdNavDown" aria-label="Abajo"> <i class="fa fa-arrow-down"></i></button>
+                    <span class="sd-nav-label">Desplazarte</span>
+                    <button class="sd-btn-intro">Intro</button>
+                    <button class="sd-btn-buscar">Buscar</button>
+                </div>
+                <div id="sdList" role="listbox"></div>
             </div>
         </div>
+
         <div class="top-right">
-            <button class="btn-install"><i class="fa fa-circle-down"></i> Instalar app</button>
-            <button class="icon-btn"><i class="fa fa-bell"></i></button>
-            <button class="icon-btn"><i class="fa fa-users"></i></button>
-            <div class="user-avatar">D</div>
+            <button class="btn-install" aria-label="Instalar app">
+                <i class="fa fa-circle-down"></i> Instalar app
+            </button>
+            <button class="icon-btn" aria-label="Notificaciones"><i class="fa fa-bell"></i></button>
+            <button class="icon-btn" aria-label="Amigos"><i class="fa fa-users"></i></button>
+            <div class="user-avatar" role="button" aria-label="Perfil de usuario">D</div>
         </div>
     </header>
 
-    <nav class="panel left-sidebar">
+    <!-- ── LEFT SIDEBAR ── -->
+    <nav class="panel left-sidebar" aria-label="Biblioteca">
         <div class="lib-header">
-            <div class="lib-title"><i class="fa fa-book" style="font-size: 20px;"></i> Tu biblioteca</div>
+            <div class="lib-title">
+                <i class="fa fa-book" style="font-size:20px;" aria-hidden="true"></i> Tu biblioteca
+            </div>
             <div class="lib-actions">
-                <button class="icon-btn"><i class="fa fa-plus"></i></button>
-                <button class="icon-btn"><i class="fa fa-arrow-right"></i></button>
+                <button class="icon-btn" aria-label="Agregar"><i class="fa fa-plus"></i></button>
+                <button class="icon-btn" aria-label="Expandir"><i class="fa fa-arrow-right"></i></button>
             </div>
         </div>
+
         <div class="lib-filters">
-            <span class="chip">Listas</span>
-            <span class="chip">Artistas</span>
-            <span class="chip">Álbumes</span>
+            <span class="chip" role="button">Listas</span>
+            <span class="chip" role="button">Artistas</span>
+            <span class="chip" role="button">Álbumes</span>
         </div>
+
         <div class="lib-search-row">
-            <i class="fa fa-magnifying-glass" style="cursor: pointer;"></i>
-            <span style="cursor: pointer; display: flex; align-items: center; gap: 6px;">Recientes <i class="fa fa-list-ul"></i></span>
+            <i class="fa fa-magnifying-glass" style="cursor:pointer;" aria-hidden="true"></i>
+            <span style="cursor:pointer;display:flex;align-items:center;gap:6px;">
+                Recientes <i class="fa fa-list-ul" aria-hidden="true"></i>
+            </span>
         </div>
-        
-        <div class="lib-list" id="libraryList">
-            <!-- Items generados por JS -->
+
+        <div class="lib-list" id="libraryList" role="list">
+            <!-- Generado por JS -->
         </div>
     </nav>
 
+    <!-- ── MAIN CONTENT ── -->
     <main class="panel main-content" id="mainContent">
         <div class="main-header-chips">
-            <span class="chip active">Todo</span>
-            <span class="chip">Música</span>
-            <span class="chip">Pódcasts</span>
+            <span class="chip active" role="button">Todo</span>
+            <span class="chip" role="button">Música</span>
+            <span class="chip" role="button">Pódcasts</span>
         </div>
 
         <div class="recent-grid" id="recentGrid">
-            <!-- Cards generadas por JS -->
+            <!-- Generado por JS -->
         </div>
 
         <div class="section-header">
             <h2>¡Hoy es viernes de novedades!</h2>
-            <span class="show-all">Mostrar todos</span>
+            <span class="show-all" role="button">Mostrar todos</span>
         </div>
         <div class="shelf-grid" id="novedadesGrid">
-            <!-- Cards generadas por JS -->
+            <!-- Generado por JS -->
         </div>
 
         <div class="section-header">
             <div>
-                <span style="font-size: 13px; color: var(--text-sub);">Hecho para</span>
+                <span style="font-size:13px;color:var(--text-sub);">Hecho para</span>
                 <h2>Dereck xcx</h2>
             </div>
-            <span class="show-all">Mostrar todos</span>
+            <span class="show-all" role="button">Mostrar todos</span>
         </div>
         <div class="shelf-grid" id="hechoParaGrid">
-            <!-- Cards generadas por JS -->
+            <!-- Generado por JS -->
         </div>
     </main>
 
-    <aside class="panel right-sidebar">
+    <!-- ── RIGHT SIDEBAR ── -->
+    <aside class="panel right-sidebar" aria-label="Información de la canción">
         <div class="rs-header">
             <h3 id="rs-header-title">Charli xcx</h3>
-            <div style="display: flex; gap: 12px; color: var(--text-sub);">
-                <i class="fa fa-ellipsis" style="cursor: pointer;"></i>
-                <i class="fa fa-xmark" style="cursor: pointer;"></i>
+            <div style="display:flex;gap:12px;color:var(--text-sub);">
+                <i class="fa fa-ellipsis" style="cursor:pointer;" aria-hidden="true"></i>
+                <i class="fa fa-xmark"    style="cursor:pointer;" aria-hidden="true"></i>
             </div>
         </div>
 
         <div class="rs-cover-wrapper">
-            <img id="rs-cover" src="" alt="Cover" />
-            <button class="btn-video-mode" id="btnVideoMode" style="display: none;">
-                <i class="fa fa-play"></i> Cambiar a video
+            <img id="rs-cover" src="" alt="Portada" />
+            <button class="btn-video-mode" id="btnVideoMode" style="display:none;" aria-label="Cambiar a video">
+                <i class="fa fa-play" aria-hidden="true"></i> Cambiar a video
             </button>
         </div>
 
         <div class="rs-info-row">
             <div class="rs-text">
-                <div class="rs-title" id="rs-title">Título</div>
+                <div class="rs-title"  id="rs-title">Título</div>
                 <div class="rs-artist" id="rs-artist">Artista</div>
             </div>
             <div class="rs-actions">
-                <i class="fa fa-arrow-up-from-bracket"></i>
-                <i class="fa fa-circle-plus"></i>
+                <i class="fa fa-arrow-up-from-bracket" title="Compartir"  aria-label="Compartir"></i>
+                <i class="fa fa-circle-plus"           title="Agregar"    aria-label="Agregar a lista"></i>
             </div>
         </div>
 
         <div class="rs-related">Videos musicales relacionados</div>
         <div class="rs-related-grid">
-            <div class="rs-rel-card">
-                <img src="https://res.cloudinary.com/df6ozlyhj/video/upload/v1783134716/Vondutchvide_zchpzs.jpg" onerror="this.src='https://placehold.co/150x84/121212/ffffff?text=Video+1'" />
+            <div class="rs-rel-card" role="button" aria-label="SS26">
+                <img src="https://res.cloudinary.com/df6ozlyhj/video/upload/v1783134716/Vondutchvide_zchpzs.jpg"
+                     onerror="this.src='https://placehold.co/150x84/121212/ffffff?text=Video+1'"
+                     alt="SS26" />
                 <span>SS26</span>
             </div>
-            <div class="rs-rel-card">
-                <img src="https://placehold.co/150x84/121212/ffffff?text=Video+2" />
+            <div class="rs-rel-card" role="button" aria-label="Rock Music">
+                <img src="https://placehold.co/150x84/121212/ffffff?text=Video+2" alt="Rock Music" />
                 <span>Rock Music</span>
             </div>
         </div>
     </aside>
 
-    <div id="video-overlay" class="video-overlay hidden">
-        <!-- El video reproducirá su propio audio cuando esté en primer plano -->
+    <!-- ── VIDEO OVERLAY ── -->
+    <div id="video-overlay" class="video-overlay hidden" role="dialog" aria-label="Modo video">
         <video id="mainVideo" playsinline></video>
-        <button class="btn-exit-video" id="btnAudioMode">
-            <i class="fa fa-music"></i> Cambiar a audio
+        <button class="btn-exit-video" id="btnAudioMode" aria-label="Volver a modo audio">
+            <i class="fa fa-music" aria-hidden="true"></i> Cambiar a audio
         </button>
     </div>
 
-    <footer class="player-bar">
+    <!-- ── PLAYER BAR ── -->
+    <footer class="player-bar" aria-label="Reproductor">
         <div class="pb-left">
-            <img id="pb-cover" class="pb-cover" src="" alt="" />
+            <img id="pb-cover" class="pb-cover" src="" alt="Portada" />
             <div class="pb-info">
-                <div class="pb-title" id="pb-title">Título</div>
+                <div class="pb-title"  id="pb-title">Título</div>
                 <div class="pb-artist" id="pb-artist">Artista</div>
             </div>
-            <i class="fa fa-circle-plus pb-add"></i>
+            <i class="fa fa-circle-plus pb-add" title="Agregar a lista" aria-label="Agregar a lista"></i>
         </div>
 
         <div class="pb-center">
             <div class="pb-controls">
-                <button class="ctrl-btn" id="btnShuffle"><i class="fa fa-shuffle"></i></button>
-                <button class="ctrl-btn" id="btnPrev"><i class="fa fa-backward-step"></i></button>
-                <button class="ctrl-play" id="btnPlay"><i class="fa fa-play" id="playIco"></i></button>
-                <button class="ctrl-btn" id="btnNext"><i class="fa fa-forward-step"></i></button>
-                <button class="ctrl-btn" id="btnRepeat"><i class="fa fa-repeat"></i></button>
+                <button class="ctrl-btn" id="btnShuffle" aria-label="Aleatorio"><i class="fa fa-shuffle"></i></button>
+                <button class="ctrl-btn" id="btnPrev"    aria-label="Anterior"> <i class="fa fa-backward-step"></i></button>
+                <button class="ctrl-play" id="btnPlay"   aria-label="Play/Pausa">
+                    <i class="fa fa-play" id="playIco"></i>
+                </button>
+                <button class="ctrl-btn" id="btnNext"    aria-label="Siguiente"><i class="fa fa-forward-step"></i></button>
+                <button class="ctrl-btn" id="btnRepeat"  aria-label="Repetir">  <i class="fa fa-repeat"></i></button>
             </div>
             <div class="pb-progress">
                 <span class="prog-time" id="time-current">0:00</span>
-                <div class="prog-bar-container" id="prog-container">
+                <div class="prog-bar-container" id="prog-container" role="slider"
+                     aria-label="Progreso" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                     <div class="prog-bar-bg">
                         <div class="prog-bar-fill" id="prog-fill">
                             <div class="prog-thumb"></div>
@@ -435,391 +198,27 @@
         </div>
 
         <div class="pb-right">
-            <button class="ctrl-btn"><i class="fa fa-square-caret-right" style="color: var(--spotify-green);"></i></button>
-            <button class="ctrl-btn"><i class="fa fa-microphone"></i></button>
-            <button class="ctrl-btn"><i class="fa fa-list"></i></button>
-            <button class="ctrl-btn"><i class="fa fa-mobile-screen"></i></button>
-            <button class="ctrl-btn"><i class="fa fa-volume-low"></i></button>
-            <div class="vol-container" id="vol-container">
+            <button class="ctrl-btn" aria-label="Cola">
+                <i class="fa fa-square-caret-right" style="color:var(--spotify-green);"></i>
+            </button>
+            <button class="ctrl-btn" aria-label="Letra"><i class="fa fa-microphone"></i></button>
+            <button class="ctrl-btn" aria-label="Cola de reproducción"><i class="fa fa-list"></i></button>
+            <button class="ctrl-btn" aria-label="Dispositivos"><i class="fa fa-mobile-screen"></i></button>
+            <button class="ctrl-btn" aria-label="Volumen"><i class="fa fa-volume-low"></i></button>
+            <div class="vol-container" id="vol-container" role="slider"
+                 aria-label="Volumen" aria-valuemin="0" aria-valuemax="100" aria-valuenow="80">
                 <div class="prog-bar-bg">
-                    <div class="prog-bar-fill" id="vol-fill" style="width: 80%;">
+                    <div class="prog-bar-fill" id="vol-fill" style="width:80%;">
                         <div class="prog-thumb"></div>
                     </div>
                 </div>
             </div>
-            <button class="ctrl-btn"><i class="fa fa-expand"></i></button>
+            <button class="ctrl-btn" aria-label="Pantalla completa"><i class="fa fa-expand"></i></button>
         </div>
     </footer>
 
     <audio id="audio" preload="auto"></audio>
 
-    <script>
-        // 1. Data Definitions
-        const SONGS = [
-            { id: 0, title: 'Von Dutch', artist: 'Charli xcx', album: 'Von Dutch - Single', 
-              cover: 'https://res.cloudinary.com/df6ozlyhj/image/upload/v1782505897/Von_Dutch_dplvw8.jpg', 
-              url: 'https://res.cloudinary.com/df6ozlyhj/video/upload/v1782505964/Charli_xcx_-_Von_dutch_imrqqn.mp3', 
-              videoUrl: 'https://res.cloudinary.com/df6ozlyhj/video/upload/v1783137246/Von_Dutch_Video_yzegks.mp4' },
-            { id: 1, title: 'SAOKO', artist: 'ROSALÍA', album: 'MOTOMAMI', 
-              cover: 'https://res.cloudinary.com/df6ozlyhj/image/upload/v1782690307/00._t7pja6.jpg', 
-              url: 'https://res.cloudinary.com/df6ozlyhj/video/upload/v1782690354/07._BIZCOCHITO_jfnbe9.flac' },
-            { id: 2, title: 'CANDY', artist: 'ROSALÍA', album: 'MOTOMAMI', 
-              cover: 'https://res.cloudinary.com/df6ozlyhj/image/upload/v1782690307/00._t7pja6.jpg', 
-              url: 'https://res.cloudinary.com/df6ozlyhj/video/upload/v1782690358/02._CANDY_epgngp.flac' },
-            { id: 3, title: 'La Fama (feat. The Weeknd)', artist: 'ROSALÍA', album: 'MOTOMAMI', 
-              cover: 'https://res.cloudinary.com/df6ozlyhj/image/upload/v1782690307/00._t7pja6.jpg', 
-              url: 'https://res.cloudinary.com/df6ozlyhj/video/upload/v1782690356/03._LAFAMA_f0vhb1.flac' },
-            { id: 4, title: 'BULERÍAS', artist: 'ROSALÍA', album: 'MOTOMAMI', 
-              cover: 'https://res.cloudinary.com/df6ozlyhj/image/upload/v1782690307/00._t7pja6.jpg', 
-              url: 'https://res.cloudinary.com/df6ozlyhj/video/upload/v1782690359/04._BULER%C3%8DAS_wu0hqm.flac' },
-            { id: 5, title: 'CHICKEN TERIYAKI', artist: 'ROSALÍA', album: 'MOTOMAMI', 
-              cover: 'https://res.cloudinary.com/df6ozlyhj/image/upload/v1782690307/00._t7pja6.jpg', 
-              url: 'https://res.cloudinary.com/df6ozlyhj/video/upload/v1782690361/05._CHICKENTERIYAKI_n9vjai.flac' },
-            { id: 6, title: 'Happier Than Ever', artist: 'Billie Eilish', album: 'Happier Than Ever', 
-              cover: 'https://res.cloudinary.com/df6ozlyhj/image/upload/v1782504582/Happier_Than_Ever_Cover_odsqsc.jpg', 
-              url: 'https://res.cloudinary.com/df6ozlyhj/video/upload/v1782504769/Happier_Than_Ever_-_Billie_Eilish_pvsyna.mp3' },
-            { id: 7, title: 'Ocean Eyes', artist: 'Billie Eilish', album: "Don't Smile at Me", 
-              cover: 'https://res.cloudinary.com/df6ozlyhj/image/upload/v1782506646/Don_t_Smile_at_me_g3uiox.jpg', 
-              url: 'https://res.cloudinary.com/df6ozlyhj/video/upload/v1782506644/Billie_Eilish_-_Ocean_Eyes_bhycwd.mp3' }
-        ];
-
-        // Mocks for visual grids (mapped to our songs)
-        const RECENT_CARDS = [
-            { img: SONGS[0].cover, title: 'Charli xcx', targetIdx: 0 },
-            { img: 'https://placehold.co/100x100/121212/ffffff?text=Manana', title: 'MAÑANA SERÁ BONITO', targetIdx: 0 },
-            { img: 'https://placehold.co/100x100/1ed760/000000?text=Brat', title: "Brat and it's completely...", targetIdx: 0 },
-            { img: 'https://placehold.co/100x100/ff0000/ffffff?text=Bichota', title: 'Con B de Bichota (Customized Version)', targetIdx: 0 },
-            { img: 'https://placehold.co/100x100/330066/ffffff?text=Trap', title: 'TRAP KITTY', targetIdx: 0 },
-            { img: 'https://placehold.co/100x100/6600cc/ffffff?text=att', title: 'att.', targetIdx: 0 },
-            { img: 'https://placehold.co/100x100/1ed760/000000?text=Brat', title: "Brat and it's completely...", targetIdx: 0 },
-            { img: SONGS[1].cover, title: 'MOTOMAMI +', targetIdx: 1 }
-        ];
-
-        const NOVEDADES_CARDS = [
-            { img: 'https://placehold.co/200x200/224466/ffffff?text=Novedades', title: 'Yo no sé si no o si sí...', desc: 'Novedades Viernes' },
-            { img: 'https://placehold.co/200x200/111111/ffffff?text=Radar', title: 'Las novedades de los...', desc: 'Radar de Novedades' },
-            { img: 'https://placehold.co/200x200/ff4444/ffffff?text=Kalei', title: 'A sonic wonderland of...', desc: 'Kaleidoscope' },
-            { img: 'https://placehold.co/200x200/88cc44/000000?text=All+New', title: 'All the new music you...', desc: 'All New All Now' },
-            { img: 'https://placehold.co/200x200/cc8866/ffffff?text=Helium', title: 'sOniiDos En conStANte...', desc: 'helium' }
-        ];
-
-        const HECHO_PARA_CARDS = [
-            { img: 'https://placehold.co/200x200/0055ff/ffffff?text=DJ', title: 'DJ', desc: '' },
-            { img: 'https://placehold.co/200x200/00cccc/ffffff?text=Mix+1', title: 'Mix diario 1', desc: '' },
-            { img: 'https://placehold.co/200x200/ccaa00/ffffff?text=Mix+2', title: 'Mix diario 2', desc: '' },
-            { img: 'https://placehold.co/200x200/aaaaaa/ffffff?text=Mix+3', title: 'Mix diario 3', desc: '' },
-            { img: 'https://placehold.co/200x200/ff66cc/ffffff?text=Mix+4', title: 'Mix diario 4', desc: '' }
-        ];
-
-        // 2. State
-        let currentIdx = 0;
-        let isPlaying = false;
-        let isVideoMode = false;
-        let volume = 0.8;
-
-        const audio = document.getElementById('audio');
-        const mainVideo = document.getElementById('mainVideo');
-        const playIco = document.getElementById('playIco');
-        const btnVideoMode = document.getElementById('btnVideoMode');
-        const videoOverlay = document.getElementById('video-overlay');
-
-        // 3. UI Rendering Functions
-        function renderLibrary() {
-            const html = `
-                <div class="lib-item">
-                    <div class="lib-icon-bg bg-liked"><i class="fa fa-heart"></i></div>
-                    <div class="lib-info"><div class="lib-name">Canciones que te gustan</div><div class="lib-desc"><i class="fa fa-thumbtack"></i> Lista • 44 canciones</div></div>
-                </div>
-                <div class="lib-item">
-                    <div class="lib-icon-bg" style="background: #e31b23; font-size:10px; font-weight:bold; font-family:serif; text-align:center; line-height:1.2;">THE<br>GALA<br><span style="font-size:6px">OF<br>KINDNESS</span></div>
-                    <div class="lib-info"><div class="lib-name">The Gala Of Kindness (Original Score ...</div><div class="lib-desc"><i class="fa fa-thumbtack"></i> Lista • Alice Whitman</div></div>
-                </div>
-                <div class="lib-item active" onclick="playSong(0)">
-                    <img src="${SONGS[0].cover}" class="lib-img round"/>
-                    <div class="lib-info"><div class="lib-name">${SONGS[0].artist}</div><div class="lib-desc"><i class="fa fa-thumbtack"></i> Artista</div></div>
-                    <i class="fa fa-volume-high" style="color:var(--spotify-green); font-size: 14px;"></i>
-                </div>
-                <div class="lib-item">
-                    <div class="lib-icon-bg" style="background: #e31b23; font-size:10px; font-weight:bold; font-family:serif; text-align:center; line-height:1.2;">THE<br>GALA<br><span style="font-size:6px">OF<br>KINDNESS</span></div>
-                    <div class="lib-info"><div class="lib-name">The Gala of Kindness (Original Score f...</div><div class="lib-desc"><i class="fa fa-thumbtack"></i> Lista • forge Records</div></div>
-                </div>
-                <div class="lib-item">
-                    <img src="https://placehold.co/48x48/e31b23/ffffff?text=BICHOTA" class="lib-img"/>
-                    <div class="lib-info"><div class="lib-name">Con B de Bichota (Customized Version)</div><div class="lib-desc">Lista • forge Records</div></div>
-                </div>
-                <div class="lib-item">
-                    <img src="https://placehold.co/48x48/f2e8d5/000000?text=MSB" class="lib-img"/>
-                    <div class="lib-info"><div class="lib-name">MAÑANA SERÁ BONITO</div><div class="lib-desc">Álbum • KAROL G</div></div>
-                </div>
-                <div class="lib-item" onclick="playSong(1)">
-                    <img src="${SONGS[1].cover}" class="lib-img"/>
-                    <div class="lib-info"><div class="lib-name">MOTOMAMI +</div><div class="lib-desc">Álbum • ROSALÍA</div></div>
-                </div>
-                <div class="lib-item">
-                    <img src="https://placehold.co/48x48/8bc34a/000000?text=BRAT" class="lib-img"/>
-                    <div class="lib-info"><div class="lib-name">Brat and it's completely different but ...</div><div class="lib-desc">Álbum • Charli xcx</div></div>
-                </div>
-                <div class="lib-item">
-                    <img src="https://placehold.co/48x48/111111/ffffff?text=Biagi" class="lib-img round"/>
-                    <div class="lib-info"><div class="lib-name">Biagi</div><div class="lib-desc">Artista</div></div>
-                </div>
-            `;
-            document.getElementById('libraryList').innerHTML = html;
-        }
-
-        function renderGrids() {
-            // Recents
-            document.getElementById('recentGrid').innerHTML = RECENT_CARDS.map(c => `
-                <div class="recent-card" onclick="playSong(${c.targetIdx})">
-                    <img src="${c.img}" loading="lazy"/>
-                    <span>${c.title}</span>
-                    <button class="btn-play-green"><i class="fa fa-play"></i></button>
-                </div>
-            `).join('');
-
-            // Novedades
-            document.getElementById('novedadesGrid').innerHTML = NOVEDADES_CARDS.map(c => `
-                <div class="shelf-card" onclick="playSong(1)">
-                    <img src="${c.img}" loading="lazy"/>
-                    <div class="shelf-title">${c.title}</div>
-                    <div class="shelf-desc">${c.desc}</div>
-                    <button class="btn-play-green"><i class="fa fa-play" style="margin-left: 2px;"></i></button>
-                </div>
-            `).join('');
-
-            // Hecho para
-            document.getElementById('hechoParaGrid').innerHTML = HECHO_PARA_CARDS.map(c => `
-                <div class="shelf-card" onclick="playSong(1)">
-                    <img src="${c.img}" loading="lazy"/>
-                    <div class="shelf-title">${c.title}</div>
-                    <div class="shelf-desc">${c.desc}</div>
-                    <button class="btn-play-green"><i class="fa fa-play" style="margin-left: 2px;"></i></button>
-                </div>
-            `).join('');
-        }
-
-        // 4. Core Player Logic
-        function loadUI(idx) {
-            const song = SONGS[idx];
-            currentIdx = idx;
-
-            // Player Bar
-            document.getElementById('pb-title').textContent = song.title;
-            document.getElementById('pb-artist').textContent = song.artist;
-            document.getElementById('pb-cover').src = song.cover;
-
-            // Right Sidebar
-            document.getElementById('rs-header-title').textContent = song.artist;
-            document.getElementById('rs-title').textContent = song.title;
-            document.getElementById('rs-artist').textContent = song.artist;
-            document.getElementById('rs-cover').src = song.cover;
-
-            // Video button visibility
-            if (song.videoUrl) {
-                btnVideoMode.style.display = 'flex';
-            } else {
-                btnVideoMode.style.display = 'none';
-                if (isVideoMode) exitVideoMode();
-            }
-
-            // Reset progress visually
-            updateProgressUI(0, 0);
-            document.title = `${song.title} • ${song.artist}`;
-        }
-
-        function playSong(idx) {
-            if (currentIdx !== idx) {
-                loadUI(idx);
-                const song = SONGS[idx];
-                
-                audio.src = song.url;
-                
-                if (song.videoUrl) {
-                    mainVideo.src = song.videoUrl;
-                    mainVideo.load();
-                } else {
-                    mainVideo.removeAttribute('src');
-                    mainVideo.load();
-                    if (isVideoMode) exitVideoMode();
-                }
-            }
-            
-            // Configurar el mute dependiendo del modo actual
-            if (isVideoMode && SONGS[idx].videoUrl) {
-                mainVideo.muted = false;
-            } else {
-                mainVideo.muted = true;
-            }
-            
-            togglePlay(true);
-        }
-
-        function togglePlay(forcePlay = false) {
-            const activeMedia = isVideoMode ? mainVideo : audio;
-            const inactiveMedia = isVideoMode ? audio : mainVideo;
-
-            if (isPlaying && !forcePlay) {
-                activeMedia.pause();
-                inactiveMedia.pause(); // Asegurarnos que ambos paren
-                isPlaying = false;
-                playIco.className = 'fa fa-play';
-            } else {
-                inactiveMedia.pause(); // Mutear/pausar la fuente inactiva
-                const p = activeMedia.play();
-                
-                if(p !== undefined) {
-                    p.then(() => {
-                        isPlaying = true;
-                        playIco.className = 'fa fa-pause';
-                    }).catch(e => {
-                        if (e.name !== 'AbortError') console.error("Playback failed:", e);
-                    });
-                }
-            }
-        }
-
-        function nextSong() {
-            const nextIdx = (currentIdx + 1) % SONGS.length;
-            playSong(nextIdx);
-        }
-
-        function prevSong() {
-            const activeMedia = isVideoMode ? mainVideo : audio;
-            if (activeMedia.currentTime > 3) {
-                activeMedia.currentTime = 0;
-                if (isVideoMode) audio.currentTime = 0; else mainVideo.currentTime = 0;
-            } else {
-                const prevIdx = (currentIdx - 1 + SONGS.length) % SONGS.length;
-                playSong(prevIdx);
-            }
-        }
-
-        // 5. Video Mode Sync (Alternancia de audio independiente vs audio de video)
-        function enterVideoMode() {
-            const song = SONGS[currentIdx];
-            if (!song.videoUrl) return;
-            
-            isVideoMode = true;
-            
-            // Transferir el tiempo actual al video
-            mainVideo.src = song.videoUrl;
-            mainVideo.currentTime = audio.currentTime;
-            mainVideo.muted = false; // Habilitar el audio propio del video
-            mainVideo.volume = volume;
-            
-            videoOverlay.classList.remove('hidden');
-            
-            if (isPlaying) {
-                audio.pause(); // Apagar el audio principal
-                const vp = mainVideo.play();
-                if (vp !== undefined) {
-                    vp.catch(e => {
-                        if (e.name !== 'AbortError') console.error("Video play failed:", e);
-                    });
-                }
-            }
-        }
-
-        function exitVideoMode() {
-            isVideoMode = false;
-            
-            // Transferir el tiempo del video de vuelta al audio
-            audio.currentTime = mainVideo.currentTime;
-            videoOverlay.classList.add('hidden');
-            
-            if (isPlaying) {
-                mainVideo.pause(); // Pausar video
-                const p = audio.play();
-                if (p !== undefined) {
-                    p.catch(e => {
-                        if (e.name !== 'AbortError') console.error("Audio play failed:", e);
-                    });
-                }
-            } else {
-                mainVideo.pause();
-            }
-        }
-
-        btnVideoMode.addEventListener('click', enterVideoMode);
-        document.getElementById('btnAudioMode').addEventListener('click', exitVideoMode);
-
-        // 6. Time & Progress formatting
-        const fmtTime = (s) => {
-            if (!s || isNaN(s)) return '0:00';
-            const m = Math.floor(s / 60);
-            return `${m}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
-        };
-
-        function updateProgressUI(pct, curTime) {
-            document.getElementById('prog-fill').style.width = pct + '%';
-            document.getElementById('time-current').textContent = fmtTime(curTime);
-        }
-
-        function handleTimeUpdate(media) {
-            const pct = media.duration ? (media.currentTime / media.duration) * 100 : 0;
-            updateProgressUI(pct, media.currentTime);
-            document.getElementById('time-total').textContent = fmtTime(media.duration);
-        }
-
-        // Actualizar barra de progreso desde el medio activo
-        audio.addEventListener('timeupdate', () => { 
-            if (!isVideoMode) handleTimeUpdate(audio); 
-        });
-
-        mainVideo.addEventListener('timeupdate', () => { 
-            if (isVideoMode) handleTimeUpdate(mainVideo); 
-        });
-
-        // Pasar a la siguiente canción
-        audio.addEventListener('ended', nextSong);
-        mainVideo.addEventListener('ended', nextSong);
-
-        // Progress bar click to seek
-        document.getElementById('prog-container').addEventListener('click', (e) => {
-            const activeMedia = isVideoMode ? mainVideo : audio;
-            if (!activeMedia.duration) return;
-            
-            const rect = e.currentTarget.getBoundingClientRect();
-            const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-            
-            activeMedia.currentTime = pct * activeMedia.duration;
-            
-            // Sincronizar el otro medio inactivo por si acaso
-            if (isVideoMode) audio.currentTime = mainVideo.currentTime;
-            else mainVideo.currentTime = audio.currentTime;
-            
-            updateProgressUI(pct * 100, activeMedia.currentTime);
-        });
-
-        // Volume control
-        document.getElementById('vol-container').addEventListener('click', (e) => {
-            const rect = e.currentTarget.getBoundingClientRect();
-            volume = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-            audio.volume = volume;
-            mainVideo.volume = volume; // El video también ajusta su volumen
-            document.getElementById('vol-fill').style.width = (volume * 100) + '%';
-        });
-
-        // Buttons
-        document.getElementById('btnPlay').addEventListener('click', () => togglePlay());
-        document.getElementById('btnNext').addEventListener('click', nextSong);
-        document.getElementById('btnPrev').addEventListener('click', prevSong);
-        
-        // Setup Initial State
-        renderLibrary();
-        renderGrids();
-        loadUI(0);
-        audio.src = SONGS[0].url; // Pre-load first audio
-        audio.volume = volume;
-
-        // Spacebar to play/pause
-        document.addEventListener('keydown', e => {
-            if (e.code === 'Space' && e.target.tagName !== 'INPUT') {
-                e.preventDefault();
-                togglePlay();
-            }
-        });
-
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
