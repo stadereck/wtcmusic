@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WTC Music (Spotify Clone)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Barra Superior Global -->
+        <header class="top-bar">
+            <div class="top-bar-left">
+                <i class="fa-brands fa-spotify logo-icon"></i>
+            </div>
+            
+            <div class="top-bar-center">
+                <button class="nav-btn-home" id="navHome"><i class="fa-solid fa-house"></i></button>
+                <div class="search-bar-wrapper">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="searchInput" placeholder="¿Qué quieres reproducir?" autocomplete="off">
+                        <i class="fa-solid fa-folder search-icon-right"></i>
+                    </div>
+                    <!-- Dropdown de Búsqueda -->
+                    <div class="search-dropdown" id="searchDropdown">
+                        <div class="dropdown-header">
+                            <span>Canciones</span>
+                        </div>
+                        <ul class="dropdown-results" id="dropdownResults">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="top-bar-right">
+                <button class="btn-install"><i class="fa-regular fa-circle-down"></i> Instalar app</button>
+                <div class="icon-circle"><i class="fa-regular fa-bell"></i></div>
+                <div class="icon-circle"><i class="fa-solid fa-user-group"></i></div>
+                <div class="icon-circle profile" id="profileBtn" style="cursor: pointer; overflow:hidden;">
+                    <img id="profileNavImg" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
+                    <i class="fa-solid fa-user" id="profileNavIcon"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar Izquierda: Biblioteca -->
+        <nav class="left-sidebar">
+            <div class="sidebar-library">
+                <div class="library-header">
+                    <span><i class="fa-solid fa-book"></i> Tu biblioteca</span>
+                    <div>
+                        <i class="fa-solid fa-plus" id="createPlaylistBtn" style="cursor:pointer;" title="Crear Playlist o Carpeta"></i>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+                <div class="library-filters">
+                    <span class="badge" onclick="filterLibrary('playlists')">Listas</span>
+                    <span class="badge" onclick="filterLibrary('artists')">Artistas</span>
+                    <span class="badge" onclick="filterLibrary('albums')">Álbumes</span>
+                </div>
+                <div class="library-search-row">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <span>Recientes <i class="fa-solid fa-list"></i></span>
+                </div>
+                <div class="library-list" id="libraryList">
+                    <!-- Library items will be injected here via localStorage -->
+                </div>
+            </div>
+        </nav>
+
+        <!-- Área Central Principal -->
+        <main class="main-view">
+            <div class="content-scrollable" id="mainScrollable">
+                <!-- VISTA 1: INICIO DINÁMICO -->
+                <div id="homeView">
+                    <div class="main-filters">
+                        <button class="filter-badge active">Todo</button>
+                        <button class="filter-badge">Música</button>
+                        <button class="filter-badge">Pódcasts</button>
+                    </div>
+                    <div id="homeDynamicContent"></div>
+                </div>
+
+                <!-- VISTA 2: PERFIL DE ARTISTA -->
+                <div id="artistProfileView" style="display:none;">
+                    <div class="artist-header">
+                        <h1 id="artistProfileName">Nombre Artista</h1>
+                        <p>Artista verificado</p>
+                    </div>
+                    <div class="artist-controls">
+                        <button class="play-btn-large"><i class="fa-solid fa-play"></i></button>
+                        <button class="btn-outline">Seguir</button>
+                        <i class="fa-solid fa-ellipsis"></i>
+                    </div>
+                    <section class="section" style="padding: 24px;">
+                        <h2>Populares</h2>
+                        <div id="artistPopularSongs" style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
+                            <!-- Canciones populares del artista inyectadas por JS -->
+                        </div>
+                    </section>
+                </div>
+
+                <!-- VISTA 3: PLAYLIST -->
+                <div id="playlistView" style="display:none;">
+                    <div class="playlist-header">
+                        <div class="playlist-cover">
+                            <i class="fa-solid fa-music"></i>
+                        </div>
+                        <div class="playlist-header-info">
+                            <span style="font-size: 14px; font-weight: 500;">Playlist Pública</span>
+                            <h1 id="playlistViewName">Mi Playlist</h1>
+                            <p>Dereck xcx • <span id="playlistSongCount">0</span> canciones</p>
+                        </div>
+                    </div>
+                    <div class="artist-controls">
+                        <button class="play-btn-large"><i class="fa-solid fa-play"></i></button>
+                        <i class="fa-solid fa-ellipsis"></i>
+                    </div>
+                    <section class="section" style="padding: 0 24px 24px;">
+                        <div class="playlist-table-header">
+                            <div># Título</div>
+                            <div>Álbum</div>
+                            <div><i class="fa-regular fa-clock"></i></div>
+                        </div>
+                        <div id="playlistSongsList">
+                            <!-- Canciones de la playlist -->
+                        </div>
+                    </section>
+                </div>
+
+                <!-- VISTA 4: FULL VIDEO -->
+                <div id="videoView" style="display:none; width:100%; height:100%; position:relative; padding: 24px;">
+                    <button id="toggleAudioMainBtn" style="position:absolute; top:40px; left:40px; background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.4); padding:8px 16px; border-radius:500px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:8px; z-index:10; backdrop-filter: blur(8px);">
+                        <i class="fa-solid fa-music"></i> Cambiar a audio
+                    </button>
+                    <div id="mainVideoContainer" style="width:100%; height:calc(100vh - 200px); border-radius:12px; overflow:hidden; background:black;">
+                        <!-- Iframe injected here -->
+                    </div>
+                </div>
+
+
+
+            </div>
+        </main>
+
+        <!-- Sidebar Derecha: Info pista / Cola -->
+        <aside class="right-sidebar">
+            <!-- VISTA INFO CANCIÓN -->
+            <div id="rightInfoContent">
+                <div class="right-header">
+                    <h3>Info Canción</h3>
+                    <i class="fa-solid fa-xmark"></i>
+                </div>
+            <div class="now-playing-large">
+                <div style="position:relative; width:100%; aspect-ratio:1/1; margin-bottom:15px; border-radius:8px; overflow:hidden;">
+                    <img id="rightCover" src="https://via.placeholder.com/300?text=+" alt="Cover" style="width:100%; height:100%; object-fit:cover; opacity:1;">
+                    <div id="rightVideoContainer" onclick="enterFullVideo()" style="display:none; width:100%; height:100%; position:absolute; top:0; left:0; background:black; cursor:pointer;">
+                        <!-- Iframe injected here -->
+                    </div>
+                    <button id="toggleVideoSidebarBtn" style="position:absolute; bottom:12px; left:12px; background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.4); padding:6px 12px; border-radius:500px; font-weight:700; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:6px; backdrop-filter: blur(8px); z-index:5;">
+                        <i class="fa-solid fa-music"></i> Cambiar a vídeo
+                    </button>
+                </div>
+                <div class="track-title-row">
+                    <div>
+                        <h2 id="rightTitle"></h2>
+                        <p id="rightArtist" class="clickable-artist"></p>
+                    </div>
+                    <i class="fa-solid fa-circle-plus text-muted" id="rightAddBtn" style="cursor:pointer; display:none;"></i>
+                </div>
+            </div>
+            
+            <div id="relatedVideosSection" style="display:none;">
+                <div style="margin-top: 30px; font-weight: 700; font-size: 14px; margin-bottom: 15px;">
+                    Sugerencias del artista
+                </div>
+                <div style="display:flex; flex-direction:column; gap:10px;" id="relatedVideosContainer">
+                    <!-- Related videos injected via JS -->
+                </div>
+            </div>
+            </div>
+
+            <!-- VISTA COLA -->
+            <div id="rightQueueContent" style="display:none; height:100%; display:flex; flex-direction:column;">
+                <div class="right-header" style="margin-bottom:10px;">
+                    <h3>Cola</h3>
+                    <i class="fa-solid fa-xmark" id="closeQueueBtn" style="cursor:pointer;" title="Cerrar"></i>
+                </div>
+                <div style="overflow-y:auto; flex:1; padding-right:10px;" class="custom-scroll">
+                    <h2 style="font-size:14px; font-weight:700; margin-bottom:12px; margin-top:10px;">Sonando</h2>
+                    <div id="queueCurrentSong" style="margin-bottom:24px;">
+                        <!-- Canción actual inyectada -->
+                    </div>
+                    
+                    <h2 style="font-size:14px; font-weight:700; margin-bottom:12px;" id="queueNextTitle">Siguiente</h2>
+                    <div id="queueUpcomingList" style="display:flex; flex-direction:column; gap:10px;">
+                        <!-- Canciones de la cola inyectadas -->
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Reproductor Inferior (Footer) -->
+        <footer class="player-footer">
+            <div class="player-left">
+                <img id="playerTrackImg" src="" alt="Portada" style="display:none;">
+                <div class="track-info">
+                    <p id="playerTrackTitle">Ninguna canción seleccionada</p>
+                    <p id="playerTrackArtist" class="clickable-artist"></p>
+                </div>
+                <i class="fa-solid fa-circle-plus" id="playerAddBtn" style="display:none; cursor:pointer;"></i>
+            </div>
+
+            <div class="player-center">
+                <div class="player-controls">
+                    <button class="control-btn toggle-active"><i class="fa-solid fa-shuffle"></i></button>
+                    <button class="control-btn"><i class="fa-solid fa-backward-step"></i></button>
+                    <button class="control-btn play-circle" id="playPauseBtn"><i class="fa-solid fa-play"></i></button>
+                    <button class="control-btn"><i class="fa-solid fa-forward-step"></i></button>
+                    <button class="control-btn toggle-active"><i class="fa-solid fa-repeat"></i></button>
+                    <button class="control-btn toggle-active" id="infinityBtn" title="Reproducción Infinita"><i class="fa-solid fa-infinity"></i></button>
+                </div>
+                <div class="playback-bar">
+                    <span id="timeCurrent">0:00</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <span id="timeTotal">0:00</span>
+                </div>
+                <!-- Reproductores Duales para Automix -->
+                <audio id="audioPlayer1" style="display: none;"></audio>
+                <audio id="audioPlayer2" style="display: none;"></audio>
+            </div>
+
+            <div class="player-right">
+                <button id="automixBtn" class="control-btn automix-btn" title="Automix IA (Crossfade)"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+                <i class="fa-solid fa-microphone"></i>
+                <i class="fa-solid fa-list-ul" id="footerQueueBtn" style="cursor:pointer;" title="Cola"></i>
+                <i class="fa-solid fa-mobile-screen"></i>
+                <i class="fa-solid fa-volume-high"></i>
+                <div class="volume-bar">
+                    <div class="volume-fill"></div>
+                </div>
+                <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+            </div>
+        </footer>
+    </div>
+
+    <!-- MODALES -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal-content">
+            <h2>Personalizar Perfil</h2>
+            <div style="display:flex; flex-direction:column; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="profileNameInput" placeholder="Nombre de usuario" autocomplete="off">
+                <input type="text" id="profilePicInput" placeholder="URL de foto de perfil (Opcional)" autocomplete="off">
+            </div>
+            
+            <h3 style="font-size: 14px; margin-bottom: 10px; color: var(--text-muted);">Datos y Copias de Seguridad</h3>
+            <div style="display:flex; gap: 10px; margin-bottom: 20px;">
+                <button class="btn-outline" id="exportWmsBtn" style="flex:1; justify-content:center; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-download"></i> Exportar .wms</button>
+                <button class="btn-outline" id="importWmsBtn" style="flex:1; justify-content:center; display:flex; align-items:center; gap:8px;" onclick="document.getElementById('importWmsInput').click()"><i class="fa-solid fa-upload"></i> Importar .wms</button>
+                <input type="file" id="importWmsInput" accept=".wms" style="display:none;">
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="document.getElementById('profileModal').style.display='none'">Cerrar</button>
+                <button class="btn-save" id="saveProfileBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="createPlaylistModal">
+        <div class="modal-content">
+            <h2>Crear nueva playlist</h2>
+            <input type="text" id="playlistNameInput" placeholder="Añade un nombre" autocomplete="off">
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="document.getElementById('createPlaylistModal').style.display='none'">Cancelar</button>
+                <button class="btn-save" id="savePlaylistBtn">Crear</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="addToPlaylistModal">
+        <div class="modal-content">
+            <h2>Añadir a playlist</h2>
+            <ul class="modal-list" id="modalPlaylistsList">
+                <!-- Inyectado por JS -->
+            </ul>
+            <button class="btn-cancel" onclick="document.getElementById('addToPlaylistModal').style.display='none'" style="margin-top:15px; width:100%;">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- CONTEXT MENU -->
+    <div id="contextMenu" class="context-menu" style="display: none;">
+        <ul>
+            <li id="ctxAddLibrary"><i class="fa-solid fa-circle-plus"></i> Añadir a Tu biblioteca</li>
+            <li id="ctxAddQueue"><i class="fa-solid fa-bars-staggered"></i> Añadir a la cola</li>
+            <li class="separator"></li>
+            <li id="ctxReport"><i class="fa-solid fa-circle-exclamation"></i> Denunciar</li>
+            <li id="ctxExclude"><i class="fa-solid fa-circle-xmark"></i> Excluir de tu perfil de gustos</li>
+            <li class="separator"></li>
+            <li id="ctxAddFolder"><i class="fa-regular fa-folder"></i> Añadir a playlist</li>
+            <li id="ctxShare"><i class="fa-solid fa-arrow-up-from-bracket"></i> Compartir</li>
+            <li class="separator"></li>
+            <li id="ctxDesktop"><i class="fa-brands fa-spotify"></i> Abrir en la aplicación de ordenador</li>
+        </ul>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
